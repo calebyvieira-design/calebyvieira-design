@@ -1,4 +1,4 @@
-name: generate contribution animations
+name: generate profile widgets
 
 on:
   schedule:
@@ -15,25 +15,50 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      # 1) Gera a animação do Pac-Man
-      - name: generate pacman animation
-        uses: abozanona/pacman-contribution-graph@main
-        with:
-          github_user_name: ${{ github.repository_owner }}
-          games: 'pacman'
-
-      # 2) Gera a animação da Snake (cobrinha)
+      # 1) Snake (cobrinha)
       - name: generate snake animation
         uses: Platane/snk@v3
-        id: snake-gif
         with:
           github_user_name: ${{ github.repository_owner }}
           outputs: |
             dist/github-contribution-grid-snake.svg
             dist/github-contribution-grid-snake-dark.svg?palette=github-dark
 
-      # 3) Junta tudo e publica na branch "output"
-      - name: push SVGs to the output branch
+      # 2) Pac-Man
+      - name: generate pacman animation
+        uses: abozanona/pacman-contribution-graph@main
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          games: 'pacman'
+
+      # 3) Card de Stats (substitui o widget quebrado do Vercel)
+      - name: generate stats card
+        uses: soulteary/github-readme-stats-action@v1.0.0
+        with:
+          card: stats
+          options: 'username=${{ github.repository_owner }}&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0F0C29&title_color=00F5FF&icon_color=00F5FF&text_color=c9d1d9&ring_color=302B63'
+          path: dist/stats.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 4) Card de Top Languages
+      - name: generate top languages card
+        uses: soulteary/github-readme-stats-action@v1.0.0
+        with:
+          card: top-langs
+          options: 'username=${{ github.repository_owner }}&layout=compact&theme=tokyonight&hide_border=true&bg_color=0F0C29&title_color=00F5FF&text_color=c9d1d9&langs_count=8'
+          path: dist/top-langs.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 5) Trophies (substitui o widget quebrado do Vercel)
+      - name: generate trophy card
+        uses: Erik-Donath/github-profile-trophy@feature/generate-svg
+        with:
+          username: ${{ github.repository_owner }}
+          output_path: dist/trophy.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 6) Publica tudo na branch "output"
+      - name: push generated files to output branch
         uses: crazy-max/ghaction-github-pages@v3.1.0
         with:
           target_branch: output
